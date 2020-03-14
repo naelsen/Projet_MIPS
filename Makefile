@@ -4,10 +4,13 @@ C = projet.c
 EXE = projet
 
 
-all : EXE
+all : compilation executer
 
 compilation : $(C)
-	$(gcc) $(CFLAGS) $(C) -o $(EXE)
+	$(CC) $(CFLAGS) $(C) -o $(EXE)
+
+executer : $(EXE)
+	./$(EXE)
 
 clean : $(EXE)
 	rm -f $(EXE)
