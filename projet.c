@@ -15,8 +15,8 @@
 #define J2_JETON ('X')
 #define VIDE (' ')
 
-#define NB_LIGNE (6)
-#define NB_COLONE (7)
+#define NB_LIGNE 6
+#define NB_COLONE 7
 
 
 char **setJeu()
@@ -33,7 +33,12 @@ char **setJeu()
 
 void afficherJeu(char **jeu)
 {
-	printf("+---+---+---+---+---+---+---+\n");
+	system("clear"); //Pour effacer ce que ya dans le terminale et effacer les
+					// Ancien affichage du puissance 4
+	printf("+");
+	for(int i = 0; i < NB_COLONE; i++)
+		printf("---+");
+	printf("\n");
 	for(int i = NB_LIGNE - 1; i >=0; i--)
 		// Pour print le puissance 4 dans le "bon sens"
 	{
@@ -43,48 +48,74 @@ void afficherJeu(char **jeu)
 		{
 			printf(" %c |",jeu[i][j]);
 		}
-	printf("\n+---+---+---+---+---+---+---+\n");
+		printf("\n+");
+		for(int i = 0; i < NB_COLONE; i++)
+			printf("---+");
+		printf("\n");
 	}
 	// Numero des colonnes pour jouer dans la colonne voulu
-	printf("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n");
+	printf("|");
+	for(int i = 1; i <= NB_COLONE; i++)
+		printf(" %d |",i);
+	printf("\n");
 }
 
-void setPion(int id_player, char **jeu, int col)
+void setPion(int id_player, char **jeu)
 {
-	if(col <= NB_COLONE && 1 <= col)
+	int col = 0;
+	while(col < 1 || col > NB_COLONE)
 	{
-		for(int i = 0; i < NB_LIGNE; i++)
+		if(id_player == 1)
+			printf(COLOR_YELLOW "Joueur %d : " COLOR_RESET, id_player);
+		else
+			printf(COLOR_RED "Joueur %d : " COLOR_RESET, id_player);
+		scanf("%d",&col);
+		if(col > NB_COLONE || col < 1)
+			printf(COLOR_RED "/!\\ "COLOR_RESET"Veuillez choisir une colonne entre 1 et 7\n");
+	}
+	for(int i = 0; i < NB_LIGNE; i++)
+	{
+		if(jeu[i][col-1] == VIDE && id_player == 1)
 		{
-			if(jeu[i][col-1] == VIDE && id_player == 1)
-			{
-				jeu[i][col-1] = J1_JETON;
-				return;
-			}
-			else if(jeu[i][col-1] == VIDE && id_player == 2)
-			{
-				jeu[i][col-1] = J2_JETON;
-				return;
-			}
-			else if(jeu[i][col-1] != VIDE && i == NB_LIGNE - 1)
-				printf("Vous ne pouvez pas jouer ici\n");
+			jeu[i][col-1] = J1_JETON;
+			return;
+		}
+		else if(jeu[i][col-1] == VIDE && id_player == 2)
+		{
+			jeu[i][col-1] = J2_JETON;
+			return;
+		}
+		else if(jeu[i][col-1] != VIDE && i == NB_LIGNE - 1)
+		{
+			printf(COLOR_RED "/!\\ " COLOR_RESET "La colonne %d est rempli, veuillez jouez autre part\n",col);
+			setPion(id_player,jeu);
 		}
 	}
-	else
-		printf("Veuillez rentrez une colonne valide ...\n");
+
 }
+
+/*char verifVictoire(jeu)
+//envoie : 'X' si le joueur 1 gagne
+//			'O' si le jouer 2 gagne
+//			'?' si personne ne gagne
+{
+	int victoireX = 0 victoireO = 0;
+	for (int i = 0; i < NB_LIGNE)
+		for (int j = 0; i < NB_COLONE; j++)
+		{
+		}
+}*/
 
 int main()
 {
 	system("clear");
 	char **jeu = setJeu();
-	setPion(1,jeu,1);
-	setPion(2,jeu,1);
-	setPion(1,jeu,1);
-	setPion(2,jeu,1);
-	setPion(1,jeu,1);
-	setPion(2,jeu,1);
-	setPion(1,jeu,1);
-
-	afficherJeu(jeu);
+	while(1)
+	{
+		afficherJeu(jeu);
+		setPion(1,jeu);
+		afficherJeu(jeu);
+		setPion(2,jeu);
+	}
 	return 0;
 }
