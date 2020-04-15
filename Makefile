@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall
-C = projet.c
-EXE = projet
+C = puis.c
+EXE = puis
 
 
 all : compilation executer

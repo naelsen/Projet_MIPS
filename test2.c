@@ -17,6 +17,17 @@
 #define STATUT_GAGNE (1)
 #define STATUT_EGALITE (2)
 
+
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+
+
 struct position
 {
     int colonne;
@@ -66,8 +77,10 @@ static void affiche_grille(void)
         putchar('|');
 
         for (col = 0; col < P4_COLONNES; ++col)
-            if (isalpha(grille[col][lgn]))
-                printf(" %c |", grille[col][lgn]);
+            if (isalpha(grille[col][lgn])){
+                printf(ANSI_COLOR_RED " %c ", grille[col][lgn]); 
+                printf(ANSI_COLOR_RESET "|");
+            }
             else
                 printf(" %c |", ' ');
 
@@ -312,6 +325,9 @@ static int vider_tampon(FILE *fp)
 }
 
 
+
+
+
 int main(void)
 {
     int statut;
@@ -349,8 +365,8 @@ int main(void)
             break;
 
         jeton = (jeton == J1_JETON) ? J2_JETON : J1_JETON;    
+    
     }
-
     if (statut == STATUT_GAGNE)
         printf("Le joueur %d a gagné\n", (jeton == J1_JETON) ? 1 : 2);
     else if (statut == STATUT_EGALITE)
