@@ -1,0 +1,1 @@
+#permet de calculer la position d'un jeton#
