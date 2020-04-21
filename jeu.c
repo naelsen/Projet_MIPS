@@ -171,7 +171,7 @@ static int coup_valide(int col)
      * ou que la colonne indiquée est saturée
      * alors le coup est invalide.
      */
-c
+
     if (col <= 0 || col > P4_COLONNES || grille[col - 1][0] != ' ')
         return 0;
 
