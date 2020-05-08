@@ -1,6 +1,6 @@
 	.data
 ligneH : .asciiz "+---+---+---+---+---+---+---+\n"
-ligneV : .asciiz "|   |   |   |   |   |   |   |\n"
+ligneV : .asciiz "|   |   |   |   |   |   |   |\n" 
 numColonne : .asciiz "| 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n"
 nbColonne : .word 6
 
