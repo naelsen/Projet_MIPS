@@ -57,7 +57,7 @@ main:
 		addi $t1,$v0, 34
 		add $a1, $a1, $t1			
 		sb $s0, 0($a1)                          
-		sub $a2, $a2, $t1	
+		sub $a1, $a1, $t1	
 		j suite	
 	
 suite:
@@ -66,7 +66,7 @@ suite:
 	jal FCT_PRINT
 	bge $s0,1,J2  #-- On regarde dans le registre qui vient de jouer
 	bge $s0,2,J1  #-- pour passer à l'autre joueur
-FIN :		      #-- Pour le deuxieme joueur il affiche des X partout
+FIN :		      #-- Donc pour l'instant on peut jouer sur la première ligne
 	li $v0, 10
 	syscall
 	
