@@ -116,7 +116,7 @@ FCT_JouerJ1:
 		syscall
 		li $v0, 5
 		syscall
-		addi $t1,$v0, -1               # scanf t1 (on fait -1 pour collé a la case de la grille qui est de 0 à 41)
+		addi $t1,$v0, -1                # scanf t1 (on fait -1 pour collé a la case de la grille qui est de 0 à 41)
 		addi $t3, $0, -1
 		bgt $t1, $t3, verif_J1		#
 		la $a0, erreur			#
@@ -133,11 +133,6 @@ FCT_JouerJ1:
 #	FIN_LIRE_J1:
 	PLACER_J1:
 	addi $s0, $zero, 1	
-	li $v0, 4
-	la $a0 ,joueur2
-	syscall
-	li $v0, 5
-	syscall
 	addi $t1,$v0, 34
 	add $a1, $a1, $t1			
 	sb $s0, 0($a1)                          
@@ -179,11 +174,7 @@ FCT_JouerJ2:
 	PLACER_J2:
 	
 	addi $s0, $zero, 2	
-	li $v0, 4
-	la $a0 ,joueur2
-	syscall
-	li $v0, 5
-	syscall
+
 	addi $t1,$v0, 34
 	add $a1, $a1, $t1			
 	sb $s0, 0($a1)                          
