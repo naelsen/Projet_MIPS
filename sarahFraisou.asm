@@ -35,7 +35,7 @@ saut:		.asciiz "\n"
 erreur:		.asciiz "Choisissez un nombre en 1 et 7\n"
 joueur1:	.asciiz "\nAu tour du joueur 1 : "
 joueur2:	.asciiz "\nAu tour du joueur 2 : "
-full_col:       .asciiz "\nVa jouer ailleurs"
+full_col:       .asciiz "\nVa jouer ailleurs : "
 draw:		.asciiz "\nPersonne n'a gagné (vous etes nul tout les 2)"
 victoire:       .asciiz "\nVictoire du joueur 1\n"
 recommencer:	.asciiz "\nRecommencer (Y/n) : "
@@ -67,12 +67,12 @@ main:
 	
 	
 	
-	#jal FCT_REFRESH_A2	# <======================== Test la fonction tu verras c'est bizarre    -----------------------------------
+	jal FCT_REFRESH_A2	# <======================== Test la fonction tu verras c'est bizarre    -----------------------------------
 	
 	
 	
-	#addi $s0, $zero, 0			# 2 pour une croix (joueur 2)
-	#addi $t5,$a2,6
+	addi $s0, $zero, 0			# 2 pour une croix (joueur 2)
+	addi $t5,$a2,6
 	#addi $t4,$a2,14
 	jal FCT_PRINT
 	TOUR_J1:
@@ -345,6 +345,7 @@ FCT_VERIF_DRAW: # Renvoie $v0 = 1 si egalite, 0 sinon (Prend comme entree $a2)
 		j FIN_BLOC_DRAW
 		
 		DRAW:
+		sub $a2, $a2, $t3##
 		la $a0, draw
 		li $v0, 4
 		syscall
@@ -367,7 +368,7 @@ FCT_CALCUL_JETONS:
 	
 	
 	li $t8,0          #-- ce registre va compter le nombre de jetons dans une direction
-	addi  $a3,$a2,0   #-- $a3 va être l'adresse qui va explorer la grille
+	la $a3,$a2       #-- $a3 va être l'adresse qui va explorer la grille
 	lb $s3, 0($a3)    #-- $s3 recupère la valeur du jeton qu'on vient de poser
 	#bge,$a3,$t6,top
 	ble $a3,$t4,bot   #-- on compte les cases qu'il y a en dessous de ce qu'on vient de poser
@@ -407,13 +408,16 @@ FCT_CALCUL_JETONS:
 FCT_REFRESH_A2: # Entrée : a2, Sortie a2
 	li $t0, 0
 	li $t1, -1
-	li, $t2, 42
+	li, $t2, 41
+	REFRESHH:
 	beq $t1, $t2, FIN_REFRESH
+	addi $t1, $t1, 1
 	sb $t0, 0($a2)
 	addi $a2, $a2, 1
-	addi $t1, $t1, 1
+	j REFRESHH
 	FIN_REFRESH:
 	sub $a2, $a2, $t2
+	addi $a2, $a2, -1
 	jr $ra
 	
 	
