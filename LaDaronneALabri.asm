@@ -2,7 +2,8 @@
 		########################################################################
 		#--- UPDATE~ Les fonction de comptage du nombre de jetons sont finis---#
 #  AISSAM :	#--          le jeu s'arrete quand il y'a un gagnant normalement    ---#
-		#--           j'ai testé, essaye quand même toi aussi               ---#
+		#--           j'ai testé, il manque les cas ou on pose le pions ente---#
+		#--        2 pions identique (il faut compter dans les 2 directions ---#
 		#----------------------------------------------------------------------#
 		#--- LA SUITE~ Maintenant il faut bien commenter le code en détail  ---#
 		#---           et aussi voir si les registres utilisés sont adaptés ---#
