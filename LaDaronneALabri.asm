@@ -1,4 +1,3 @@
-
 		########################################################################
 		#--- UPDATE~ Les fonction de comptage du nombre de jetons sont finis---#
 #  AISSAM :	#--          le jeu s'arrete quand il y'a un gagnant normalement    ---#
@@ -10,7 +9,7 @@
 		#---           parce que je les ai choisis nimporte comment moi     ---#
 		#---           vois dans ma fonction qui retourne $s5 par exemple   ---#
 		########################################################################
-		
+
 		########################################################################
 # NAEL :	#--- Le probleme de decalage des pion il se trouvais dans la fct    ---#
 		#---                    verif draw.        			    ---#
@@ -21,7 +20,6 @@
 		#---    (Et j'ai remplacé tout les $a1 par des $a2, 	 	    ---#
 		#---         pose pas de question y'aura pas de reponses)	    ---#
 		########################################################################
-
 
 
 		# Du coup le probleme que t'avais c'était l'adresse de $a2 qu'il fallait
@@ -115,14 +113,14 @@ main:
 	la $a0, victoire_J1     #
 	li $v0, 4
 	syscall
-	j fin
+	j replay
 	
 	victoire2: #-- VICTOIRE JOUEUR 2
 	
 	la $a0, victoire_J2
 	li $v0, 4
 	syscall
-	j fin
+	j replay
 	
 	fin:
 	li $v0, 10
@@ -216,7 +214,7 @@ FCT_JouerJ1: #Prend $a2 en entrée et renvoie $a2 modifé
 #	FIN_LIRE_J1:
 	PLACER_J1:
 	
-	addi $s0, $zero, 1	
+	addi $s0, $zero, 1
 
 	addi $t1,$v0, 34                       #-- On donne à $t1 la valeur entrée +34
 	add $a2, $a2, $t1		       #-- pour être sur la dernière ligne
@@ -413,8 +411,8 @@ FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les
 	li $t8,0  
 	addi $a3,$a2,0
 
-####===!!!Les instruction suivantes sont réalisées uniquement lorsqu'on se trouve sur la colonne du milieu (4)!!!===####	
-	
+####===!!!Les instruction suivantes sont réalisées uniquement lorsqu'on se trouve sur la colonne du milieu (4)!!!===####
+
 	#-- Compte du nombre de jetons à droite
 	right:
 	addi $t8,$t8,1     #-- on incrémente directement $t8 car on compte le jeton de départ
