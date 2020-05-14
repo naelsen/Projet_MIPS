@@ -1,13 +1,13 @@
 
 		########################################################################
 		#--- UPDATE~ Les fonction de comptage du nombre de jetons sont finis---#
-#  AISSAM :	#--          Ça semble marcher pour tous les exemples que           ---#
+#  AISSAM :	#--          le jeu s'arrete quand il y'a un gagnant normalement    ---#
 		#--           j'ai testé, essaye quand même toi aussi               ---#
 		#----------------------------------------------------------------------#
 		#--- LA SUITE~ Maintenant il faut bien commenter le code en détail  ---#
-		#---           et aussi voir si les registre utilisés sont adaptés  ---#
-		#---           parce que je l'ai ai choisi nimporte comment moi     ---#
-		#---           vois dans ma fonction qui retourne $s5                --#
+		#---           et aussi voir si les registres utilisés sont adaptés ---#
+		#---           parce que je les ai choisis nimporte comment moi     ---#
+		#---           vois dans ma fonction qui retourne $s5 par exemple   ---#
 		########################################################################
 		
 		########################################################################
