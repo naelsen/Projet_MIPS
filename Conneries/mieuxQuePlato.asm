@@ -548,7 +548,6 @@ GAUCHE:	#-- Le jetons se trouve dans les 3 dernières colonnes, on vérifie seul
 	lw $fp, 4($sp)   #   IL
 	addi $sp, $sp, 8 #     OG
 	jr $ra           #       UE
-	#j replay
 	
 #<><><><><><><><><><><><><><><><><><> FCT_REFRESH_A2 <><><><><><><><><><><><><><><><><><><><><>	
 
