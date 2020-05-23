@@ -354,9 +354,13 @@ FCT_VERIF_DRAW: # Renvoie $v0 = 1 si egalite, 0 sinon (Prend comme entree $a2)
 
 #<><><><><><><><><><><><><><><><><><> FCT_CALCUL_NB_JETONS <><><><><><><><><><><><><><><><><><><><><>	
 
+#-- Elle prend en paramètres $a2 (case du jeton) ,$v0 (colonne placée ), et renvoie $s5 (0 ou 1)
+
 FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les directions
 		   #-- en partant du jetons qu'on vient de poser, elle est appelée à chaque tour
 
+
+					
 	addi $sp, $sp, -8 # PR
 	sw $ra, 0($sp)    #   OL
 	sw $fp, 4($sp)    #     OG
@@ -372,16 +376,21 @@ FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les
 	#-- A chaque jeton posé, on compte toujours le nombre de jetons en dessous
 	
 	#-- Compte du nombre de jetons sous le dernier joué
-	calcul_vers_bar: 
+	calcul_vers_bas: 
 	addi $t8,$t8,1
 	bge $t8,4,WIN
 	addi $a3,$a3,7
 	lb $s4, 0($a3)
 	beq,$s3,$s4,calcul_vers_bas		    
 	
-	blt $v0,4,DROITE             #-- Le jeton se trouve dans la moitié gauche de la grille 
-	bgt $v0,4,GAUCHE	     #-- Le jeton se trouve du coté droit (voir commentaire sur etiquette)
-	
+	CASE : 
+	beq $v0,1,COL1             #-- Le jeton se trouve dans la moitié gauche de la grille 
+	beq $v0,2,COL2	     #-- Le jeton se trouve du coté droit (voir commentaire sur etiquette)
+	beq $v0,3,COL3
+	beq $v0,4,COL4
+	beq $v0,5,COL5
+	beq $v0,6,COL6
+	beq $v0,7,COL7
 				     #-- Aucun des deux branchement est réalisé, ça veut dire qu'on s'est placé 
 		                     #-- sur la colonne du milieu, on doit donc faire tous les tests
 		                     
@@ -393,70 +402,72 @@ FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les
 ####===!!!Les instruction suivantes sont réalisées uniquement lorsqu'on se trouve sur la colonne du milieu (4)!!!===####
 
 	#-- Compte du nombre de jetons à droite
-	right:
+
+COL4 :
+	right4:
 	addi $t8,$t8,1     #-- on incrémente directement $t8 car on compte le jeton de départ
 	bge $t8,4,WIN      #-- lorsqu'on a 4 jetons alignés, le dernier joueur gagne la partie
 	addi $a3,$a3,1
 	lb $s4, 0($a3)
-	beq,$s3,$s4,right
+	beq,$s3,$s4,right4
 	
 	
 	li $t8,0
 	addi $a3,$a2,0
 	#-- Compte du nombre de jetons à gauche
-	left:
+	left4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
 	subi $a3,$a3,1
 	lb $s4, 0($a3)
-	beq,$s3,$s4,left
+	beq,$s3,$s4,left4
 	
 	
 	li $t8,0
 	addi $a3,$a2,0
 	#-- Compte du nombre de jetons sur la diagonale haute gauche
-	top_left:
+	top_left4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
 	subi $a3,$a3,8
 	lb $s4, 0($a3)
-	beq,$s3,$s4,top_left
+	beq,$s3,$s4,top_left4
 	#--
 	li $t8,0
 	addi $a3,$a2,0	
 	#-- Diagonale haute droite (-6)
-	top_right:
+	top_right4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
 	subi $a3,$a3,6
 	lb $s4, 0($a3)
-	beq,$s3,$s4,top_right
+	beq,$s3,$s4,top_right4
 	#--
 	li $t8,0
 	addi $a3,$a2,0	
 	#-- Diagonale basse gauche (+6)
-	bot_left:
+	bot_left4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
 	addi $a3,$a3,6
 	lb $s4, 0($a3)
-	beq,$s3,$s4,bot_left
+	beq,$s3,$s4,bot_left4
 	#--
 	li $t8,0
 	addi $a3,$a2,0	
 	#-- Diagonale basse droite (+8)
-	bot_right:
+	bot_right4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
 	subi $a3,$a3,8
 	lb $s4, 0($a3)
-	beq,$s3,$s4,bot_right
+	beq,$s3,$s4,bot_right4
 	#--
 
 
 
 
-DROITE: #-- Le jetons se trouve dans les 3 premières colonnes, on regarde uniquement  à droite	
+COL1: #-- Le jetons se trouve dans la première colonne, on regarde uniquement à droite	
 	li $t8,0
 	addi $a3,$a2,0
 	right1:
@@ -485,13 +496,12 @@ DROITE: #-- Le jetons se trouve dans les 3 premières colonnes, on regarde uniqu
 	beq,$s3,$s4,bot_right1
 		
 			
-GAUCHE:	#-- Le jetons se trouve dans les 3 dernières colonnes, on vérifie seulement les cases à gauche	
-
+COL7:	#-- Le jetons se trouve dans la dernière colonne, on vérifie seulement les cases à gauche	
+	
 	li $t8,0
 	addi $a3,$a2,0
 	left1:
 	addi $t8,$t8,1
-	bge $t8,4,WIN
 	subi $a3,$a3,1
 	lb $s4, 0($a3)
 	beq,$s3,$s4,left1
@@ -513,7 +523,161 @@ GAUCHE:	#-- Le jetons se trouve dans les 3 dernières colonnes, on vérifie seul
 	addi $a3,$a3,6
 	lb $s4, 0($a3)
 	beq,$s3,$s4,bot_left1	
-											
+#-----------------------------------------------------------------
+
+COL2:
+	li $t9, 2
+	j comptage_partie_gauche
+#---------				
+COL3:
+	li $t9, 3
+	j comptage_partie_gauche
+#---------
+COL5:
+	li $t9, 3
+	j comptage_partie_droite
+#---------
+COL6:										
+	li $t9, 2
+	j comptage_partie_droite
+#-----------------------------------------------------------------
+comptage_partie_gauche :
+ 
+	left2:
+	addi $t8,$t8,1
+	beq $t8,$t9,retour_l
+	subi $a3,$a3,1
+	lb $s4, 0($a3)
+	beq,$s3,$s4,left2
+	
+	li $t8,0
+	addi $a3,$a2,0
+	j top_left2
+	retour_l :
+	li $t8,0 
+	right2:
+	addi $t8,$t8,1     #-- on incrémente directement $t8 car on compte le jeton de départ
+	bge $t8,4,WIN      #-- lorsqu'on a 4 jetons alignés, le dernier joueur gagne la partie
+	addi $a3,$a3,1
+	lb $s4, 0($a3)
+	beq,$s3,$s4,right2
+	
+	
+	#-- Compte du nombre de jetons à gauche
+	
+	#-- Compte du nombre de jetons sur la diagonale haute gauche
+	top_left2:
+	addi $t8,$t8,1
+	beq $t8,$t9,retour_tl
+	subi $a3,$a3,8
+	lb $s4, 0($a3)
+	beq,$s3,$s4,top_left2
+	
+	addi $a3,$a2,0
+	li $t8,0
+	j bot_left2
+	#--
+	retour_tl:
+	li $t8,0   #-- On regarde ligne-haut-bas vers le mur puis on reviens dans l'ordre
+	bot_right2:
+	addi $t8,$t8,1
+	addi $a3,$a3,8
+	lb $s4, 0($a3)
+	beq,$s3,$s4,bot_right2
+	#--
+	li $t8,0
+	addi $a3,$a2,0	
+	#-- Diagonale basse droite (+8)
+	bot_left2:
+	addi $t8,$t8,1
+	beq $t8,$t9,retour_bl
+	addi $a3,$a3,6
+	lb $s4, 0($a3)
+	beq,$s3,$s4,top_left2
+	#--
+	retour_bl:
+	li $t8,0   #-- On regarde ligne-haut-bas vers le mur puis on reviens dans l'ordre
+	top_right2:
+	addi $t8,$t8,1
+	subi $a3,$a3,6
+	lb $s4, 0($a3)
+	beq,$s3,$s4,top_right2
+
+	j FIN_CALCUL
+
+comptage_partie_droite :
+ 
+	right_2:
+	addi $t8,$t8,1          #-- On commence par regarder à droite jusqu'a la limite de grille
+	beq $t8,$t9,retour_r    #-- $t9 correspond à cette limite, ensuite on revient
+	addi $a3,$a3,1
+	lb $s4, 0($a3)
+	beq,$s3,$s4,right_2
+	
+	li $t8,0
+	addi $a3,$a2,0
+	j top_right_2
+	
+	retour_r :
+	li $t8,0 
+	left_2:
+	addi $t8,$t8,1     #-- on incrémente directement $t8 car on compte le jeton de départ
+	bge $t8,4,WIN      #-- lorsqu'on a 4 jetons alignés, le dernier joueur gagne la partie
+	subi $a3,$a3,1
+	lb $s4, 0($a3)
+	beq,$s3,$s4,left_2
+	
+	
+	#-- Compte du nombre de jetons à gauche
+	
+	
+	li $t8,0
+	addi $a3,$a2,0
+	#-- Compte du nombre de jetons sur la diagonale haute gauche
+	top_right_2:
+	addi $t8,$t8,1
+	beq $t8,$t9,retour_tr
+	subi $a3,$a3,6
+	lb $s4, 0($a3)
+	beq,$s3,$s4,top_right_2
+	#--
+	li $t8,0
+	addi $a3,$a2,0	
+	j bot_right_2
+	retour_tr:
+	li $t8,0
+	#-- Diagonale basse gauche (+6)
+	bot_left_2:
+	addi $t8,$t8,1
+	bge $t8,4,WIN
+	addi $a3,$a3,6
+	lb $s4, 0($a3)
+	beq,$s3,$s4,bot_left_2
+	#--
+	li $t8,0
+	addi $a3,$a2,0	
+	#-- Diagonale basse droite (+8)
+	
+	
+	bot_right_2:
+	addi $t8,$t8,1
+	beq $t8,$t3,retour_br
+	subi $a3,$a3,8
+	lb $s4, 0($a3)
+	beq,$s3,$s4,bot_right_2
+	#--
+	li $t8,0
+	addi $a3,$a2,0	
+	retour_br:
+	top_left_2:
+	li $t8,0
+	addi $t8,$t8,1
+	bge $t8,4,WIN
+	subi $a3,$a3,8
+	lb $s4, 0($a3)
+	beq,$s3,$s4,top_left_2
+	
+																																																																																		
 	j FIN_CALCUL
 	
 
@@ -525,6 +689,10 @@ GAUCHE:	#-- Le jetons se trouve dans les 3 dernières colonnes, on vérifie seul
 	lw $fp, 4($sp)   #   IL
 	addi $sp, $sp, 8 #     OG
 	jr $ra           #       UE
+	
+
+	
+	
 	
 #<><><><><><><><><><><><><><><><><><> FCT_REFRESH_A2 <><><><><><><><><><><><><><><><><><><><><>	
 

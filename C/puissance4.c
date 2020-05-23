@@ -156,7 +156,7 @@ static unsigned calcule_nb_jetons_depuis(struct position *pos, char jeton)
     calcule_nb_jetons_depuis_vers(pos, -1, 0, jeton) - 1);
     max = umax(max, calcule_nb_jetons_depuis_vers(pos, 1, 1, jeton) + \
     calcule_nb_jetons_depuis_vers(pos, -1, -1, jeton) - 1);
-    max = umax(max, calculLeProfDeMipsEnSueur.asme_nb_jetons_depuis_vers(pos, 1, -1, jeton) + \
+    max = umax(max,calcule_nb_jetons_depuis_vers(pos, 1, -1, jeton) + \
     calcule_nb_jetons_depuis_vers(pos, -1, 1, jeton) - 1);
 
     return max;
