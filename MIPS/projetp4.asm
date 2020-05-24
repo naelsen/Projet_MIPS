@@ -1,3 +1,7 @@
+#-- Code d'un puissance 4 en langage assembleur MIPS --#
+#-- sur le simulateur Mars4_5                        --#
+
+#<><><><><><><><><><><><><><><><><><><><><><><> DONNÉES <><><><><><><><><><><><><><><><><><><><><><>#
 
 .data		# réinitialiser à chaque fois
 #Pour print le jeu
@@ -17,11 +21,12 @@ Y:		.ascii "Y"
 n:		.ascii "n"
 
 
-# Dans la grille :
-# 0 = Rien
-# 1 = J1
-# 2 = J2
-grille:		.space 42 # Car 42 case  #grille : [ 0, 1 , .. , 6] Ligne 1
+# Dans la grille : Il y'a 3 contenus possible par case
+# 0 = CASE VIDE
+# 1 = Jeton 1 (O)
+# 2 = Jeton 2 (X)
+grille:		.space 42 # Car la grille contient 42 cases (6 lignes 7 colonnes)
+#					          : [ 0, 1 , .. , 6] Ligne 1
 						  #[ :, : , .. , : ] Ligne i
 						  #[35, 36, .. , 41] Ligne 6
 #Jeton des joueurs
@@ -32,22 +37,22 @@ J1b:		.asciiz "| O |\n"
 J2b:		.asciiz "| X |\n"
 videb:		.asciiz "|   |\n"
 
-
+#<><><><><><><><><><><><><><><><><><><><><><><>< PROGRAMME <><><><><><><><><><><><><><><><><><><><><><><><><><>#
 	.text
 main:
 
-	la $a2, grille				# a2 Grille
-	jal FCT_REFRESH_A2
-	addi $s0, $zero, 0
-	addi $t5,$a2,6
-	jal FCT_PRINT
-	li $s5,0
+	la $a2, grille				#----
+	jal FCT_REFRESH_A2                      #
+	addi $s0, $zero, 0 			# Initialisation des registres et de la grille,
+	addi $t5,$a2,6 				# 
+	jal FCT_PRINT				# Affichage dans la console
+	li $s5,0				#----
 	TOUR_J1:
 		jal FCT_JouerJ1			#-- Joueur 1 joue
-		jal FCT_BRUIT_PION		#-- Fait un bruit quand un pion est posé (Pour le style)
-		jal FCT_VERIF_DRAW		#-- Retourne (v0=) 1 si égalité, 0 sinon
-		li $t0, 1
-		beq $v1, $t0, drawPartie
+		jal FCT_BRUIT_PION		#-- Fait un bruit quand un pion est posé 
+		jal FCT_VERIF_DRAW		#-- Vérification s'il n'ya pas de match nul
+		#li $t0, 1
+		beq $v1, 1, drawPartie
 		beq $s5,1,victoire1		#-- $s5 a été modifiée à partir du pion posé le joueur 1
 		j TOUR_J2			#-- ce qui signifie qu'il a gagné
 
@@ -65,8 +70,8 @@ main:
 
 	replay: #-- MATCH NUL
 	
-	la $a0, recommencer
-	li $v0, 4
+	la $a0, recommencer                           # Demande à l'utilisateur s'il veut recommencer la partie
+	li $v0, 4                                    
 	syscall
 	li $v0, 12
 	syscall
@@ -75,55 +80,62 @@ main:
 	li $t1, 89				    # 89 pour n
 	beq $a0, $t0, fin
 	beq $a0, $t1, main
-	la $a0, respecte
+	la $a0, respecte                           # Si aucun des deux caractère (Y/n) n'est entré , on recommence
 	li $v0, 4
 	syscall
-	j replay
+	j replay                                   
 	
 	drawPartie:
-	la $a0, draw     #
-	li $v0, 4
+	la $a0, draw                              # Aucun des deux joueurs n'a gagné, la grille est complète
+	li $v0, 4                                 
 	syscall
 	jal FCT_BRUIT_DRAW
 	j replay
 	
-	victoire1: #-- VICTOIRE JOUEUR 1
+	victoire1:                                 #-- VICTOIRE JOUEUR 1
 	la $a0, victoire_J1     #
 	li $v0, 4
 	syscall
 	jal FCT_BRUIT_VICTOIRE
 	j replay
 	
-	victoire2: #-- VICTOIRE JOUEUR 2
+	victoire2:                                  #-- VICTOIRE JOUEUR 2
 	la $a0, victoire_J2
 	li $v0, 4
 	syscall
 	jal FCT_BRUIT_VICTOIRE
 	j replay
 	
-	fin:
+	fin:                                        #-- fin du programme si l'utilisateur choisi de ne pas recommencer
 	li $v0, 10
 	syscall
 
+#<><><><><><><><><><><><><><><><<><><><><<><><><>><><>><><> FONCTIONS <><><><><><<><>><><><><><><><><><><><><><><><><><><><><><>#
+
+
+
 #<><><><><><><><><><><><><><><><><><> FCT_PRINT <><><><><><><><><><><><><><><><><><><><><>
-FCT_PRINT: #Prend $a2 en entrée et ne renvoie rien
+
+FCT_PRINT: #-- Prend $a2 (registre du debut de la grille) en entrée et ne renvoie rien, 
+	   #-- elle permet d'afficher le jeu dans la console, avec le contenu de chaque case
 	addi $sp, $sp, -8 # PR
 	sw $ra, 0($sp)    #   OL
 	sw $fp, 4($sp)    #     OG
 	addi $fp, $sp, 8  #       UE
 	
-	addi $t2, $0, 0                                  #t2 Compteur ligne
+	addi $t2, $0, 0                                 #-- $t2: registre qui permet de ompter les ligne
 	PRINT:
-		la $a0, ligneH
+		la $a0, ligneH                           
 		li $v0, 4
-		syscall
+		syscall                                 #-- Ce bloc affiche les séparateurs de lignes              
 		addi $t2, $t2, 1
-		beq $t2, 7, FIN_PRINT            # On verifie si on peut encore print une ligne
-		addi $t0, $0, -1   # compteur de la grille         #t0 Compteur colonne
+		beq $t2, 7, FIN_PRINT                   #-- limite du nombre de lignes
+		subi $t0, $0, 1                         #-- $t0 compteur de la grille  initialisé à -1 à chaque ligne  
+		
 		PRINT_LIGNE:
-			beq $t0, 6, FIN_PRINT_LIGNE         # On verifie si on peut encore print une case de la ligne
+			beq $t0, 6, FIN_PRINT_LIGNE         # On verifie si on peut encore ajouter une case à la ligne
 			addi $t0, $t0, 1
-			lb $t1, 0($a2)                                #t1 Valeur de la case
+			lb $t1, 0($a2)                      #-- $t1 recupère et stock la valeur de la case ) l'adresse de $a2
 			
 			AFFICHE_CASE:
 				beq $t1, 0, AFFICHE_VIDE
@@ -153,19 +165,20 @@ FCT_PRINT: #Prend $a2 en entrée et ne renvoie rien
 			j PRINT_LIGNE
 		FIN_PRINT_LIGNE:
 		j PRINT
-	FIN_PRINT:
+	FIN_PRINT:                                             #-- Fin de la fonction print, on affiche les numeros de colonnes
 	la $a0, numColonne
 	li $v0, 4
 	syscall
 	addi $a2, $a2, -42 # On remet la grille a2 au debut pour recommencer le meme procesus
+	
 	lw $ra, 0($sp)   # EP
 	lw $fp, 4($sp)   #   IL
 	addi $sp, $sp, 8 #     OG
 	jr $ra           #       UE
 	
-#<><><><><><><><><><><><><><><><><><> FCT_JouerJ1 <><><><><><><><><><><><><><><><><><><><><>	
+#<><><><><><><><><><><><><><><><><><> FCT_JouerJ1 <><><><><><><><><><><><><><><><><><><><><>#	
 
-FCT_JouerJ1: #Prend $a2 en entrée et renvoie $a2 modifé
+FCT_JouerJ1:                                  #--       Prend $a2 (la grille) en entrée et renvoie $a2 modifé
 	addi $sp, $sp, -8 # PR
 	sw $ra, 0($sp)    #   OL
 	sw $fp, 4($sp)    #     OG
@@ -174,53 +187,53 @@ FCT_JouerJ1: #Prend $a2 en entrée et renvoie $a2 modifé
 		la $a0, joueur1
 		li $v0, 4
 		syscall
-		li $v0, 5
-		syscall
-		addi $t1,$v0, -1                # scanf t1 (on fait -1 pour collé a la case de la grille qui est de 0 à 41)
-		addi $t3, $0, -1
-		bgt $t1, $t3, verif_J1		#
+		li $v0, 5                       #- $v0 recupère la valeur entrée par le joueur (entre 1 et 7)
+		syscall                         
+		addi $t1,$v0, -1                #  $t1 recupère la valeur dans la case  
+		addi $t3, $0, -1                #  (on fait -1 pour coller a la case de la grille qui est de 0 à 41)
+		bgt $t1, $t3, verif_J1		#  si $t1 > -1 ($v0 plus grand que 0 strictement donc) on verifie l'autre condition
 		la $a0, erreur			#
 		li $v0, 4			#
 		syscall				#
 		j LIRE_J1			#
-		verif_J1:			# On verifie si le nombre est entre 1 et 7
-		addi $t2, $0, 7			#            t2 = 7
-		bgt  $t2, $t1, PLACER_J1	#
+		verif_J1:			# On verifie si le nombre est plus petit que 7
+		addi $t2, $0, 7			#            t2 = 7 > t3 = colonne choisie
+		bgt  $t2, $t1, PLACER_J1	# Les conditions sont respectées, on peut passer à l'étiquette de placement
 		la $a0, erreur			#
 		li $v0, 4			#
 		syscall				#
 		j LIRE_J1
-#	FIN_LIRE_J1:
+
 	PLACER_J1:
 	
-	addi $s0, $zero, 1
+	addi $s0, $zero, 1                     # $s0 prend la valeur 1 correspondant au joueur 1
 
 	addi $t1,$v0, 34                       #-- On donne à $t1 la valeur entrée +34
 	add $a2, $a2, $t1		       #-- pour être sur la dernière ligne
 	
-	TEST_CASE_VIDE1:			#-- On veut voir si la case est vide 
-	lb $t6, 0($a2)				#-- on récupère la valeur de cette case (0,1 ou 2)
-	beq $t6,0,JOUE1				#-- On regarde si elle est vide (inf ou egal a 0)
+	TEST_CASE_VIDE1:		       #-- On veut voir si la case est vide 
+	lb $t6, 0($a2)		               #-- on récupère la valeur de cette case (0,1 ou 2)
+	beq $t6,0,JOUE1			       #-- On regarde si elle est vide (inf ou egal a 0)
 	
-	ble,$a2,$t5,FULL_COL1
+	ble,$a2,$t5,FULL_COL1                  #-- si la colonne est pleine ($a2 plus petit que le debut de la grille +7)
 
 	
-	j suite_jeu1
-	
+	j suite_jeu1                           #-- si non on tente de placer le pion 
+		
 	j LIRE_J1
 	
-	FULL_COL1:
+	FULL_COL1:                             #-- affiche un message d'erreur et demande de rejouer
 	li, $v0,4
 	la $a0,full_col
 	syscall
 	la $a2,grille
 	j LIRE_J1
 	
-	suite_jeu1: 
+	suite_jeu1:                             #--  on reinitialise les registres
 	add $t2, $0, $0#
 	addi $t7, $0, 7#
 	
-	
+						#-- On se place une ligne plus haut sur la même colonne
 	subi $a2,$a2,7				
 	subi $t1,$t1,7
 						#-- Si la case n'est pas vide, on retire 7 à $a2 pour se placer au dessus
@@ -228,9 +241,9 @@ FCT_JouerJ1: #Prend $a2 en entrée et renvoie $a2 modifé
 					
 	
 	JOUE1:					#-- Si la case est vide alors on place notre pion
-	sb $s0, 0($a2)                          #-- et on revient au debut du tableau tu connais
+	sb $s0, 0($a2)                          
 	jal FCT_CALCUL_JETONS	
-	FIN_TOUR1:
+	FIN_TOUR1:                              #-- et on revient au debut du tableau pour afficher la grille
 	sub $a2, $a2, $t1	
 	jal FCT_PRINT
 	
@@ -243,7 +256,7 @@ FCT_JouerJ1: #Prend $a2 en entrée et renvoie $a2 modifé
 	
 #<><><><><><><><><><><><><><><><><><> FCT_JouerJ2 <><><><><><><><><><><><><><><><><><><><><>
 	
-FCT_JouerJ2: #Prend $a2 en entrée et renvoie $a2 modifé
+FCT_JouerJ2:                                  #-- Même fonctionnement que pour la fonction FCT_JouerJ1
 	addi $sp, $sp, -8 # PR
 	sw $ra, 0($sp)    #   OL
 	sw $fp, 4($sp)    #     OG
@@ -317,8 +330,9 @@ FCT_JouerJ2: #Prend $a2 en entrée et renvoie $a2 modifé
 	
 #<><><><><><><><><><><><><><><><><><> FCT_VERIF_DRAW <><><><><><><><><><><><><><><><><><><><><>	
 
-FCT_VERIF_DRAW: # Renvoie $v0 = 1 si egalite, 0 sinon (Prend comme entree $a2)
-	addi $sp, $sp, -8 # PR
+FCT_VERIF_DRAW:                                #-- Vérification si match nul, (Prend comme entree $a2)
+					       #-- renvoie dans $v0 la valeur 1 si match nul, 0 sinon
+	addi $sp, $sp, -8 # PR          
 	sw $ra, 0($sp)    #   OL
 	sw $fp, 4($sp)    #     OG
 	addi $fp, $sp, 8  #       UE
@@ -354,7 +368,7 @@ FCT_VERIF_DRAW: # Renvoie $v0 = 1 si egalite, 0 sinon (Prend comme entree $a2)
 
 #<><><><><><><><><><><><><><><><><><> FCT_CALCUL_NB_JETONS <><><><><><><><><><><><><><><><><><><><><>	
 
-#-- Elle prend en paramètres $a2 (case du jeton) ,$v0 (colonne placée ), et renvoie $s5 (0 ou 1)
+#-- Elle prend en paramètres $a2 (case du jeton) ,$v0 (colonne placée ), et renvoie $s5 (0 ou 1) donnant la victoire ou non
 
 FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les directions
 		   #-- en partant du jetons qu'on vient de poser, elle est appelée à chaque tour
@@ -369,52 +383,44 @@ FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les
 	#-- Récupération des données du jeu en cours	
 
 	li $t8,0         	 #-- ce registre va compter le nombre de jetons dans une direction
-	addi $a3,$a2,0           #-- $a3 est une copie de l'adresse actuelle, elle nous permet d'explorer 
-	lb $s3, 0($a3)           #-- $s3 recupère la valeur du jeton qu'on vient de poser
+	addi $a3,$a2,0           #-- $a3 est une copie de l'adresse actuelle, elle nous permet d'explorer la grille
+	lb $s3, 0($a2)           #-- $s3 recupère la valeur du jeton qu'on vient de poser
 				 #-- cette valeur sera conservée pour les comparaisons
 	
 	#-- A chaque jeton posé, on compte toujours le nombre de jetons en dessous
 	
 	#-- Compte du nombre de jetons sous le dernier joué
+	
 	calcul_vers_bas: 
-	addi $t8,$t8,1
-	bge $t8,4,WIN
-	addi $a3,$a3,7
-	lb $s4, 0($a3)
-	beq,$s3,$s4,calcul_vers_bas		    
+	addi $t8,$t8,1               # $t8 est incrémenté à chaque fois qu'un jeton identique est rencontré
+	bge $t8,4,WIN                # s'il est superieur ou egal à 4, il y'a victoire 
+	addi $a3,$a3,7               # on regarde la case en dessous du jeton posé
+	lb $s4, 0($a3)               # par défaut les cases supérieures à 42 contiennent la valeur 0
+	beq,$s3,$s4,calcul_vers_bas  # si jetons identique alors on incrémente    
 	
 	CASE : 
-	beq $v0,1,COL1             #-- Le jeton se trouve dans la moitié gauche de la grille 
-	beq $v0,2,COL2	     #-- Le jeton se trouve du coté droit (voir commentaire sur etiquette)
-	beq $v0,3,COL3
+	beq $v0,1,COL1             #-- Instructions switch, branchement sur la colonne correspondant
+	beq $v0,2,COL1	           
+	beq $v0,3,COL1
 	beq $v0,4,COL4
-	beq $v0,5,COL5
-	beq $v0,6,COL6
+	beq $v0,5,COL7
+	beq $v0,6,COL7
 	beq $v0,7,COL7
-				     #-- Aucun des deux branchement est réalisé, ça veut dire qu'on s'est placé 
-		                     #-- sur la colonne du milieu, on doit donc faire tous les tests
 		                     
-	#-- Ces deux lignes essentielles reinitialisent 
-	#-- le compte dès qu'on croise un jeton différent.	                     
-	li $t8,0  
-	addi $a3,$a2,0
 
-####===!!!Les instruction suivantes sont réalisées uniquement lorsqu'on se trouve sur la colonne du milieu (4)!!!===####
 
-	#-- Compte du nombre de jetons à droite
-
-COL4 :
-	right4:
+COL4 :                    
+	right4:            #-- Compte du nombre de jetons à droite
 	addi $t8,$t8,1     #-- on incrémente directement $t8 car on compte le jeton de départ
 	bge $t8,4,WIN      #-- lorsqu'on a 4 jetons alignés, le dernier joueur gagne la partie
 	addi $a3,$a3,1
 	lb $s4, 0($a3)
-	beq,$s3,$s4,right4
+	beq,$s3,$s4,right4 #-- s'il y a moins de 4 jetons alignés sur la droite, on s'arrete au jetons le plus eloignés
 	
-	
-	li $t8,0
-	addi $a3,$a2,0
-	#-- Compte du nombre de jetons à gauche
+    	subi $a3,$a3,1
+	#li $t8,0
+ 	addi $a3,$a3,-1
+	                   #-- Compte du nombre de jetons à gauche à partir de ce jetons
 	left4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
