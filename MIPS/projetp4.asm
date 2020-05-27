@@ -60,7 +60,7 @@ main:
 		jal FCT_JouerJ2			#-- Joueur 2 joue
 		jal FCT_BRUIT_PION		#-- Fait un bruit quand un pion est posé (Pour le style)
 		jal FCT_VERIF_DRAW		#-- Retourne (v0=) 1 si égalité, 0 sinon
-		li $t0, 1
+		li $t0, 1 			#-- Retourne (s5=) 1 si victoire sinon 0
 		beq $v1, $t0, drawPartie
 		beq $s5,1,victoire2		#-- On bascule alors sur l'étiquette dédiée 
 		j TOUR_J1
@@ -332,9 +332,9 @@ FCT_JouerJ2:                                  #-- Même fonctionnement que pour 
 
 FCT_VERIF_DRAW:                                #-- Vérification si match nul, (Prend comme entree $a2)
 					       #-- renvoie dans $v0 la valeur 1 si match nul, 0 sinon
-	addi $sp, $sp, -8 # PR          
-	sw $ra, 0($sp)    #   OL
-	sw $fp, 4($sp)    #     OG
+	addi $sp, $sp, -8 # PR                 #-- vérifie le contenue des cette premières cases de la grille ($a2 à $a2 +7)
+	sw $ra, 0($sp)    #   OL	       #-- si aucune case n'est vide ça implique que toute la grilles est complète
+	sw $fp, 4($sp)    #     OG             #-- on place la valeur 1 dans $v1
 	addi $fp, $sp, 8  #       UE
 	
 	addi $t2, $0, 8 # Nombre de case = 42 pour critere d'arret
@@ -370,6 +370,8 @@ FCT_VERIF_DRAW:                                #-- Vérification si match nul, (
 
 #-- Elle prend en paramètres $a2 (case du jeton) ,$v0 (colonne placée ), et renvoie $s5 (0 ou 1) donnant la victoire ou non
 
+#-- Cette fonction reconnait une victoire seulement lorsque le dernier pions placé est à l'extrémité de la rangée de 4.
+
 FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les directions
 		   #-- en partant du jetons qu'on vient de poser, elle est appelée à chaque tour
 
@@ -401,9 +403,9 @@ FCT_CALCUL_JETONS: #-- Cette fonction calcule le nombre de jetons dans toute les
 	CASE : 
 	beq $v0,1,COL1             #-- Instructions switch, branchement sur la colonne correspondant
 	beq $v0,2,COL1	           
-	beq $v0,3,COL1
-	beq $v0,4,COL4
-	beq $v0,5,COL7
+	beq $v0,3,COL1		   #-- Nous avons réalisé ici un cas pour chaque colonne, mais cela ne fonctionne pas
+	beq $v0,4,COL4             #-- commme attendu, les lignes de codes 535 à 688 ne sont pas utilisées, mais vous pouvez
+	beq $v0,5,COL7             #-- voir le raisonnement que nous avons eu 
 	beq $v0,6,COL7
 	beq $v0,7,COL7
 		                     
@@ -417,10 +419,9 @@ COL4 :
 	lb $s4, 0($a3)
 	beq,$s3,$s4,right4 #-- s'il y a moins de 4 jetons alignés sur la droite, on s'arrete au jetons le plus eloignés
 	
-    	subi $a3,$a3,1
-	#li $t8,0
- 	addi $a3,$a3,-1
-	                   #-- Compte du nombre de jetons à gauche à partir de ce jetons
+	li $t8,0
+	addi $a3,$a2,0        
+	                              #-- Compte du nombre de jetons à gauche à partir de ce jetons
 	left4:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
@@ -468,14 +469,16 @@ COL4 :
 	subi $a3,$a3,8
 	lb $s4, 0($a3)
 	beq,$s3,$s4,bot_right4
+	
 	#--
+	j FIN_CALCUL
 
-
-
+	
 
 COL1: #-- Le jetons se trouve dans la première colonne, on regarde uniquement à droite	
 	li $t8,0
 	addi $a3,$a2,0
+	
 	right1:
 	addi $t8,$t8,1
 	bge $t8,4,WIN
@@ -500,14 +503,17 @@ COL1: #-- Le jetons se trouve dans la première colonne, on regarde uniquement �
 	subi $a3,$a3,8
 	lb $s4, 0($a3)
 	beq,$s3,$s4,bot_right1
-		
+	
+	j FIN_CALCUL	
 			
 COL7:	#-- Le jetons se trouve dans la dernière colonne, on vérifie seulement les cases à gauche	
 	
 	li $t8,0
 	addi $a3,$a2,0
+	
 	left1:
 	addi $t8,$t8,1
+	bge $t8,4,WIN
 	subi $a3,$a3,1
 	lb $s4, 0($a3)
 	beq,$s3,$s4,left1
@@ -529,7 +535,9 @@ COL7:	#-- Le jetons se trouve dans la dernière colonne, on vérifie seulement l
 	addi $a3,$a3,6
 	lb $s4, 0($a3)
 	beq,$s3,$s4,bot_left1	
-#-----------------------------------------------------------------
+	
+	j FIN_CALCUL
+####################################################################################################################
 
 COL2:
 	li $t9, 2
@@ -546,7 +554,6 @@ COL5:
 COL6:										
 	li $t9, 2
 	j comptage_partie_droite
-#-----------------------------------------------------------------
 comptage_partie_gauche :
  
 	left2:
@@ -615,16 +622,17 @@ comptage_partie_droite :
  
 	right_2:
 	addi $t8,$t8,1          #-- On commence par regarder à droite jusqu'a la limite de grille
-	beq $t8,$t9,retour_r    #-- $t9 correspond à cette limite, ensuite on revient
+	beq $t8,$t9,retour_r    #-- $t9 correspond à cette limite, ensuite on revient dans la direction opposée
 	addi $a3,$a3,1
-	lb $s4, 0($a3)
+	lb $s4, 0($a3)          
 	beq,$s3,$s4,right_2
-	
+	j retour_r             #-- une fois le premier jetons non identique (ou cas vide) renconctré, on compte
+	                       #-- dans la direction opposée
 	li $t8,0
 	addi $a3,$a2,0
 	j top_right_2
 	
-	retour_r :
+	retour_r :         #
 	li $t8,0 
 	left_2:
 	addi $t8,$t8,1     #-- on incrémente directement $t8 car on compte le jeton de départ
@@ -683,13 +691,14 @@ comptage_partie_droite :
 	lb $s4, 0($a3)
 	beq,$s3,$s4,top_left_2
 	
+###########################################################################################################################
 																																																																																		
 	j FIN_CALCUL
 	
 
 	WIN:
 	li $s5,1        #-- On place dans ce registre la valeur 1, pour indiquer        
-			#-- qu'un des deux joueurs à gagner, retour au main 
+			#-- que le dernier à avoir joué à gagner, retour au main 
 	FIN_CALCUL:
 	lw $ra, 0($sp)   # EP
 	lw $fp, 4($sp)   #   IL
@@ -702,7 +711,7 @@ comptage_partie_droite :
 	
 #<><><><><><><><><><><><><><><><><><> FCT_REFRESH_A2 <><><><><><><><><><><><><><><><><><><><><>	
 
-FCT_REFRESH_A2: # Entrée : a2, Sortie a2
+FCT_REFRESH_A2: # Entrée : a2, Sortie a2 , affecte à toutes les cases la valeur 0
 	li $t0, 0
 	li $t1, -1
 	li, $t2, 41
@@ -718,9 +727,12 @@ FCT_REFRESH_A2: # Entrée : a2, Sortie a2
 	jr $ra
 
 
-#<><><><><><><><><><><><><><><><><><> FCT_BRUIT_PION <><><><><><><><><><><><><><><><><><><><><>	
 
-FCT_BRUIT_PION:
+#-- Les fonctions suivantes ermettant de jouer des sons lors des différentes actions est issues placer un pion , match nul ou victoire
+
+#<><><><><><><><><><><><><><><><><><> FCT_BRUIT_PION <><><><><><><><><><><><><><><><><><><><><>	
+ 
+FCT_BRUIT_PION:                  
 	addi $sp, $sp, -8 # PR
 	sw $ra, 0($sp)    #   OL
 	sw $fp, 4($sp)    #     OG
